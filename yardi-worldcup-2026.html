@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yardi International — World Cup 2026 Sweepstake</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#0F6E56;--green-light:#E1F5EE;--green-mid:#1D9E75;
+    --gold:#EF9F27;--gold-light:#FAEEDA;
+    --dark:#1a1a1a;--mid:#444;--muted:#777;
+    --border:#e0e0e0;--bg:#f8f8f6;--white:#fff;
+  }
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);font-size:14px;line-height:1.5}
+
+  /* SETUP SCREEN */
+  #setup-screen{
+    position:fixed;inset:0;background:rgba(10,10,10,0.85);
+    display:flex;align-items:center;justify-content:center;z-index:1000;
+  }
+  .setup-box{
+    background:var(--white);border-radius:12px;padding:36px 40px;
+    max-width:480px;width:90%;
+  }
+  .setup-box h2{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:6px}
+  .setup-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+  .setup-steps{margin-bottom:24px}
+  .step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+  .step-num{
+    width:22px;height:22px;border-radius:50%;background:var(--dark);
+    color:white;font-size:11px;font-weight:700;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;margin-top:1px
+  }
+  .step-text{font-size:13px;line-height:1.6}
+  .step-text a{color:var(--green);text-decoration:none;font-weight:500}
+  .step-text a:hover{text-decoration:underline}
+  .input-row{display:flex;gap:8px;margin-top:4px}
+  input[type=text]{
+    flex:1;padding:8px 12px;border:1px solid var(--border);
+    border-radius:6px;font-size:13px;font-family:inherit;
+    outline:none;transition:border-color .15s
+  }
+  input[type=text]:focus{border-color:var(--green)}
+  .btn{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+    padding:8px 16px;border-radius:6px;border:1px solid var(--border);
+    background:var(--white);cursor:pointer;display:inline-flex;
+    align-items:center;gap:6px;transition:background .15s;white-space:nowrap
+  }
+  .btn:hover{background:var(--bg)}
+  .btn-primary{background:var(--green);color:white;border-color:var(--green)}
+  .btn-primary:hover{background:var(--green-mid)}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .setup-error{color:#c00;font-size:12px;margin-top:6px;display:none}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+  .already-row{display:flex;gap:8px;align-items:center}
+
+  /* LOADING */
+  #loading-bar{
+    position:fixed;top:0;left:0;height:3px;background:var(--gold);
+    width:0;transition:width .3s;z-index:999
+  }
+
+  /* SYNC STATUS */
+  #sync-bar{
+    background:var(--dark);color:rgba(255,255,255,0.6);
+    font-size:11px;padding:5px 40px;display:flex;
+    align-items:center;justify-content:space-between;
+  }
+  #sync-status{display:flex;align-items:center;gap:6px}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0}
+  .sync-dot.ok{background:#4ade80}
+  .sync-dot.saving{background:var(--gold);animation:pulse .8s infinite}
+  .sync-dot.err{background:#f87171}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* HERO */
+  .hero{background:var(--dark);color:var(--white);padding:40px 40px 36px;position:relative;overflow:hidden}
+  .hero::before{
+    content:'2026';font-family:'Bebas Neue',sans-serif;font-size:260px;
+    position:absolute;right:-10px;top:-40px;opacity:.06;line-height:1;
+    pointer-events:none;letter-spacing:-4px
+  }
+  .hero-eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px}
+  .hero h1{font-family:'Bebas Neue',sans-serif;font-size:50px;line-height:1;letter-spacing:1px;margin-bottom:6px}
+  .hero-sub{color:rgba(255,255,255,.5);font-size:13px}
+  .share-url-row{
+    margin-top:14px;display:flex;gap:8px;align-items:center;
+    background:rgba(255,255,255,.08);border-radius:7px;padding:8px 12px;
+    max-width:520px;
+  }
+  #share-url{
+    font-size:11px;color:rgba(255,255,255,.6);word-break:break-all;flex:1;
+    font-family:monospace
+  }
+
+  /* TABS */
+  .tab-bar{
+    background:var(--white);border-bottom:1px solid var(--border);
+    display:flex;padding:0 40px;position:sticky;top:0;z-index:100
+  }
+  .tab{
+    padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);
+    cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap
+  }
+  .tab.active,.tab:hover{color:var(--green);border-bottom-color:var(--green)}
+
+  /* MAIN */
+  .container{max-width:1100px;margin:0 auto;padding:32px 40px 60px}
+  .section{display:none}
+  .section.active{display:block}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:26px;margin-bottom:3px}
+  .section-desc{font-size:13px;color:var(--muted);margin-bottom:24px}
+
+  /* PICKS */
+  .participants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+  .person-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .person-header{background:var(--dark);padding:12px 14px;display:flex;align-items:center;gap:10px}
+  .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .person-name{font-weight:600;font-size:14px;color:var(--white)}
+  .person-teams{padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+  .team-row{display:flex;align-items:center;justify-content:space-between}
+  .team-name{font-weight:500;font-size:13px;display:flex;align-items:center;gap:7px}
+  .pot-badge{font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:20px}
+  .pot-1{background:#FFF3CD;color:#854F0B}
+  .pot-2{background:var(--green-light);color:var(--green)}
+  .pot-3{background:#F0F0F0;color:#555}
+
+  /* GROUPS */
+  .groups-layout{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px}
+  .group-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .group-header{padding:9px 14px;display:flex;align-items:center;gap:10px}
+  .group-label{font-family:'Bebas Neue',sans-serif;font-size:19px;color:rgba(255,255,255,.95);letter-spacing:1px}
+  .group-teams-mini{font-size:10px;color:rgba(255,255,255,.45)}
+  .group-fixtures{padding:8px 10px;display:flex;flex-direction:column;gap:7px}
+  .fixture-row{border:1px solid var(--border);border-radius:7px;padding:7px 9px;background:var(--bg)}
+  .fixture-matchup{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+  .fixture-team{display:flex;align-items:center;gap:4px;font-weight:500;font-size:12.5px;flex:1}
+  .fixture-team.right{justify-content:flex-end;text-align:right}
+  .vs-badge{background:var(--dark);color:var(--white);font-size:9px;font-weight:700;padding:2px 4px;border-radius:3px;flex-shrink:0}
+  .score-boxes{display:flex;align-items:center;gap:3px;justify-content:center}
+  .score-box{
+    width:28px;height:24px;border:1.5px solid var(--border);border-radius:4px;
+    background:var(--white);display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;cursor:text;transition:border-color .15s;
+    outline:none;user-select:text;
+  }
+  .score-box:focus{border-color:var(--green)}
+  .score-box.filled{border-color:var(--green-mid);background:var(--green-light);color:var(--green)}
+  .score-divider{font-size:13px;font-weight:700;color:var(--muted)}
+  .fixture-meta{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .fixture-owners{display:flex;gap:3px;flex-wrap:wrap}
+  .owner-chip{font-size:10px;font-weight:600;padding:1px 5px;border-radius:20px;border:1px solid}
+  .round-label{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:2px 6px;border-radius:3px}
+  .round-1{background:#EEF2FF;color:#3730a3}
+  .round-2{background:#FEF9EE;color:#92400e}
+  .round-3{background:#F0FDF4;color:#166534}
+
+  @media(max-width:600px){
+    .hero{padding:28px 18px 24px}
+    .hero h1{font-size:38px}
+    .container{padding:20px 14px 48px}
+    .tab-bar{padding:0 14px;overflow-x:auto}
+    #sync-bar{padding:5px 14px}
+    .participants-grid,.groups-layout{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP MODAL -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h2>Set up live score sync</h2>
+    <p>Scores will sync in real time for everyone with the link. This takes about 60 seconds and only needs to be done once — by whoever will be keeping score.</p>
+
+    <div class="setup-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          Go to <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> and sign up for a free account (takes ~30 seconds with Google).
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          Once logged in, go to <strong>API Keys</strong> in the top menu and copy your <strong>Master Key</strong>.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          Paste it here — the page will create a shared bin and give you a link to send to the team.
+          <div class="input-row" style="margin-top:8px">
+            <input type="text" id="api-key-input" placeholder="$2b$12$..." />
+            <button class="btn btn-primary" onclick="initBin()">Create &amp; share</button>
+          </div>
+          <div class="setup-error" id="setup-error"></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Already have a shared link from the score-keeper?</p>
+    <div class="already-row">
+      <input type="text" id="existing-url-input" placeholder="Paste the share link here…" style="flex:1" />
+      <button class="btn btn-sm" onclick="loadFromUrl()">Load</button>
+    </div>
+    <div class="setup-error" id="url-error"></div>
+  </div>
+</div>
+
+<div id="loading-bar"></div>
+
+<!-- SYNC BAR -->
+<div id="sync-bar">
+  <div id="sync-status">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-msg">Not connected</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="last-saved" style="color:rgba(255,255,255,.35)"></span>
+    <button class="btn btn-sm" onclick="copyShareUrl()" style="font-size:11px;padding:4px 10px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.7)">Copy share link</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <p class="hero-eyebrow">Yardi International Marketing</p>
+  <h1>World Cup 2026<br>Sweepstake</h1>
+  <p class="hero-sub">48 teams · 12 groups · 15 participants · USA, Canada &amp; Mexico · 11 Jun – 19 Jul</p>
+</div>
+
+<!-- TABS -->
+<nav class="tab-bar" role="tablist">
+  <div class="tab active" onclick="switchTab('picks')" id="tab-picks">My Picks</div>
+  <div class="tab" onclick="switchTab('groups')" id="tab-groups">Group Stage Fixtures</div>
+</nav>
+
+<main class="container">
+  <section class="section active" id="sec-picks">
+    <h2 class="section-title">Sweepstake picks</h2>
+    <p class="section-desc">Each person has one top seed, one middle seed, one lower seed — drawn randomly.</p>
+    <div class="participants-grid" id="picks-grid"></div>
+  </section>
+
+  <section class="section" id="sec-groups">
+    <h2 class="section-title">Group stage fixtures</h2>
+    <p class="section-desc">Enter scores as matches are played — they sync live for everyone with the link.</p>
+    <div class="groups-layout" id="groups-grid"></div>
+  </section>
+</main>
+
+<script>
+// ═══════════════════════ DATA ═══════════════════════
+
+const PARTICIPANTS = [
+  {name:'Martin',   pot1:'Spain',       pot2:'Austria',     pot3:'Iraq'},
+  {name:'Amber',    pot1:'France',      pot2:'Ecuador',     pot3:'Czechia'},
+  {name:'Harvey',   pot1:'England',     pot2:'Sweden',      pot3:'Uzbekistan'},
+  {name:'Denis',    pot1:'Brazil',      pot2:'South Korea', pot3:'Tunisia'},
+  {name:'Yasmin',   pot1:'Argentina',   pot2:'Scotland',    pot3:'DR Congo'},
+  {name:'Chloe',    pot1:'Portugal',    pot2:'Senegal',     pot3:'South Africa'},
+  {name:'Chanel',   pot1:'Germany',     pot2:'Croatia',     pot3:'Cape Verde'},
+  {name:'Sammy',    pot1:'Netherlands', pot2:'Australia',   pot3:'Panama'},
+  {name:'Alex',     pot1:'Norway',      pot2:'Egypt',       pot3:'Saudi Arabia'},
+  {name:'Charlotte',pot1:'Belgium',     pot2:'USA',         pot3:'Qatar'},
+  {name:'Linda',    pot1:'Colombia',    pot2:'Ivory Coast', pot3:'Bosnia'},
+  {name:'Nikki',    pot1:'Japan',       pot2:'Uruguay',     pot3:'Iran'},
+  {name:'Luke',     pot1:'Morocco',     pot2:'Paraguay',    pot3:'New Zealand'},
+  {name:'Sophie',   pot1:'Mexico',      pot2:'Turkey',      pot3:'Ghana'},
+  {name:'Saja',     pot1:'Switzerland', pot2:'Canada',      pot3:'Algeria'},
+];
+
+const TEAM_OWNER = {};
+PARTICIPANTS.forEach(p=>{TEAM_OWNER[p.pot1]=p.name;TEAM_OWNER[p.pot2]=p.name;TEAM_OWNER[p.pot3]=p.name});
+
+const FLAGS = {
+  'Spain':'🇪🇸','France':'🇫🇷','England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Brazil':'🇧🇷','Argentina':'🇦🇷',
+  'Portugal':'🇵🇹','Germany':'🇩🇪','Netherlands':'🇳🇱','Norway':'🇳🇴','Belgium':'🇧🇪',
+  'Colombia':'🇨🇴','Japan':'🇯🇵','Morocco':'🇲🇦','Mexico':'🇲🇽','Switzerland':'🇨🇭',
+  'USA':'🇺🇸','Uruguay':'🇺🇾','Turkey':'🇹🇷','Ecuador':'🇪🇨','Croatia':'🇭🇷',
+  'Austria':'🇦🇹','Senegal':'🇸🇳','Sweden':'🇸🇪','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Canada':'🇨🇦',
+  'Ivory Coast':'🇨🇮','Paraguay':'🇵🇾','Egypt':'🇪🇬','South Korea':'🇰🇷','Australia':'🇦🇺',
+  'Ghana':'🇬🇭','Algeria':'🇩🇿','Bosnia':'🇧🇦','Czechia':'🇨🇿','Tunisia':'🇹🇳',
+  'Iran':'🇮🇷','Saudi Arabia':'🇸🇦','DR Congo':'🇨🇩','South Africa':'🇿🇦','Panama':'🇵🇦',
+  'Qatar':'🇶🇦','Cape Verde':'🇨🇻','Iraq':'🇮🇶','Uzbekistan':'🇺🇿','New Zealand':'🇳🇿',
+  'Haiti':'🇭🇹','Curaçao':'🇨🇼','Jordan':'🇯🇴',
+};
+
+const GROUPS = [
+  {id:'A',teams:['Mexico','South Korea','South Africa','Czechia'],color:'#534AB7',
+   fixtures:[
+    {r:1,date:'Jun 11',home:'Mexico',away:'South Africa',venue:'Mexico City'},
+    {r:1,date:'Jun 11',home:'South Korea',away:'Czechia',venue:'Zapopan'},
+    {r:2,date:'Jun 18',home:'Czechia',away:'South Africa',venue:'Atlanta'},
+    {r:2,date:'Jun 18',home:'Mexico',away:'South Korea',venue:'Zapopan'},
+    {r:3,date:'Jun 24',home:'South Africa',away:'South Korea',venue:'Guadalajara'},
+    {r:3,date:'Jun 24',home:'Czechia',away:'Mexico',venue:'Mexico City'},
+  ]},
+  {id:'B',teams:['Canada','Switzerland','Qatar','Bosnia'],color:'#0F6E56',
+   fixtures:[
+    {r:1,date:'Jun 12',home:'Canada',away:'Bosnia',venue:'Toronto'},
+    {r:1,date:'Jun 13',home:'Qatar',away:'Switzerland',venue:'San Francisco'},
+    {r:2,date:'Jun 18',home:'Switzerland',away:'Bosnia',venue:'Los Angeles'},
+    {r:2,date:'Jun 18',home:'Canada',away:'Qatar',venue:'Vancouver'},
+    {r:3,date:'Jun 24',home:'Switzerland',away:'Canada',venue:'Vancouver'},
+    {r:3,date:'Jun 24',home:'Bosnia',away:'Qatar',venue:'Seattle'},
+  ]},
+  {id:'C',teams:['Brazil','Morocco','Scotland','Haiti'],color:'#D85A30',
+   fixtures:[
+    {r:1,date:'Jun 13',home:'Brazil',away:'Morocco',venue:'New York/NJ'},
+    {r:1,date:'Jun 13',home:'Haiti',away:'Scotland',venue:'Boston'},
+    {r:2,date:'Jun 20',home:'Scotland',away:'Morocco',venue:'Seattle'},
+    {r:2,date:'Jun 20',home:'Brazil',away:'Haiti',venue:'Miami'},
+    {r:3,date:'Jun 24',home:'Scotland',away:'Brazil',venue:'Miami'},
+    {r:3,date:'Jun 24',home:'Morocco',away:'Haiti',venue:'Atlanta'},
+  ]},
+  {id:'D',teams:['USA','Paraguay','Australia','Turkey'],color:'#185FA5',
+   fixtures:[
+    {r:1,date:'Jun 12',home:'USA',away:'Paraguay',venue:'Los Angeles'},
+    {r:1,date:'Jun 13',home:'Australia',away:'Turkey',venue:'Vancouver'},
+    {r:2,date:'Jun 19',home:'USA',away:'Australia',venue:'Seattle'},
+    {r:2,date:'Jun 19',home:'Turkey',away:'Paraguay',venue:'Vancouver'},
+    {r:3,date:'Jun 25',home:'Australia',away:'Paraguay',venue:'Kansas City'},
+    {r:3,date:'Jun 25',home:'Turkey',away:'USA',venue:'Philadelphia'},
+  ]},
+  {id:'E',teams:['Germany','Ecuador','Ivory Coast','Curaçao'],color:'#639922',
+   fixtures:[
+    {r:1,date:'Jun 14',home:'Germany',away:'Curaçao',venue:'Houston'},
+    {r:1,date:'Jun 14',home:'Ivory Coast',away:'Ecuador',venue:'Philadelphia'},
+    {r:2,date:'Jun 20',home:'Germany',away:'Ivory Coast',venue:'Toronto'},
+    {r:2,date:'Jun 20',home:'Ecuador',away:'Curaçao',venue:'Kansas City'},
+    {r:3,date:'Jun 25',home:'Germany',away:'Ecuador',venue:'Dallas'},
+    {r:3,date:'Jun 25',home:'Curaçao',away:'Ivory Coast',venue:'Philadelphia'},
+  ]},
+  {id:'F',teams:['Netherlands','Japan','Tunisia','Sweden'],color:'#993556',
+   fixtures:[
+    {r:1,date:'Jun 14',home:'Netherlands',away:'Japan',venue:'Dallas'},
+    {r:1,date:'Jun 14',home:'Sweden',away:'Tunisia',venue:'Monterrey'},
+    {r:2,date:'Jun 21',home:'Netherlands',away:'Sweden',venue:'Los Angeles'},
+    {r:2,date:'Jun 21',home:'Tunisia',away:'Japan',venue:'Guadalajara'},
+    {r:3,date:'Jun 25',home:'Netherlands',away:'Tunisia',venue:'Miami'},
+    {r:3,date:'Jun 25',home:'Japan',away:'Sweden',venue:'Houston'},
+  ]},
+  {id:'G',teams:['Belgium','Iran','Egypt','New Zealand'],color:'#BA7517',
+   fixtures:[
+    {r:1,date:'Jun 15',home:'Belgium',away:'Egypt',venue:'Seattle'},
+    {r:1,date:'Jun 15',home:'Iran',away:'New Zealand',venue:'Los Angeles'},
+    {r:2,date:'Jun 21',home:'Belgium',away:'Iran',venue:'Los Angeles'},
+    {r:2,date:'Jun 21',home:'Egypt',away:'New Zealand',venue:'Dallas'},
+    {r:3,date:'Jun 26',home:'Belgium',away:'New Zealand',venue:'Atlanta'},
+    {r:3,date:'Jun 26',home:'Iran',away:'Egypt',venue:'Boston'},
+  ]},
+  {id:'H',teams:['Spain','Uruguay','Saudi Arabia','Cape Verde'],color:'#A32D2D',
+   fixtures:[
+    {r:1,date:'Jun 15',home:'Spain',away:'Cape Verde',venue:'Atlanta'},
+    {r:1,date:'Jun 15',home:'Saudi Arabia',away:'Uruguay',venue:'Miami'},
+    {r:2,date:'Jun 22',home:'Spain',away:'Saudi Arabia',venue:'Atlanta'},
+    {r:2,date:'Jun 22',home:'Uruguay',away:'Cape Verde',venue:'Kansas City'},
+    {r:3,date:'Jun 26',home:'Spain',away:'Uruguay',venue:'Dallas'},
+    {r:3,date:'Jun 26',home:'Cape Verde',away:'Saudi Arabia',venue:'Miami'},
+  ]},
+  {id:'I',teams:['France','Senegal','Norway','Iraq'],color:'#534AB7',
+   fixtures:[
+    {r:1,date:'Jun 16',home:'France',away:'Senegal',venue:'New York/NJ'},
+    {r:1,date:'Jun 16',home:'Iraq',away:'Norway',venue:'Boston'},
+    {r:2,date:'Jun 22',home:'France',away:'Iraq',venue:'Philadelphia'},
+    {r:2,date:'Jun 22',home:'Norway',away:'Senegal',venue:'New York/NJ'},
+    {r:3,date:'Jun 26',home:'France',away:'Norway',venue:'Boston'},
+    {r:3,date:'Jun 26',home:'Senegal',away:'Iraq',venue:'Toronto'},
+  ]},
+  {id:'J',teams:['Argentina','Austria','Algeria','Jordan'],color:'#0F6E56',
+   fixtures:[
+    {r:1,date:'Jun 16',home:'Argentina',away:'Algeria',venue:'Kansas City'},
+    {r:1,date:'Jun 16',home:'Austria',away:'Jordan',venue:'San Francisco'},
+    {r:2,date:'Jun 22',home:'Argentina',away:'Austria',venue:'Dallas'},
+    {r:2,date:'Jun 22',home:'Jordan',away:'Algeria',venue:'San Francisco'},
+    {r:3,date:'Jun 27',home:'Jordan',away:'Argentina',venue:'Dallas'},
+    {r:3,date:'Jun 27',home:'Algeria',away:'Austria',venue:'Kansas City'},
+  ]},
+  {id:'K',teams:['Portugal','Colombia','Uzbekistan','DR Congo'],color:'#D85A30',
+   fixtures:[
+    {r:1,date:'Jun 17',home:'Portugal',away:'DR Congo',venue:'Houston'},
+    {r:1,date:'Jun 17',home:'Uzbekistan',away:'Colombia',venue:'Mexico City'},
+    {r:2,date:'Jun 23',home:'Portugal',away:'Uzbekistan',venue:'Houston'},
+    {r:2,date:'Jun 23',home:'Colombia',away:'DR Congo',venue:'Guadalajara'},
+    {r:3,date:'Jun 27',home:'Colombia',away:'Portugal',venue:'Miami'},
+    {r:3,date:'Jun 27',home:'DR Congo',away:'Uzbekistan',venue:'Atlanta'},
+  ]},
+  {id:'L',teams:['England','Croatia','Ghana','Panama'],color:'#185FA5',
+   fixtures:[
+    {r:1,date:'Jun 17',home:'England',away:'Croatia',venue:'Dallas'},
+    {r:1,date:'Jun 17',home:'Ghana',away:'Panama',venue:'Toronto'},
+    {r:2,date:'Jun 23',home:'England',away:'Ghana',venue:'Boston'},
+    {r:2,date:'Jun 23',home:'Panama',away:'Croatia',venue:'Toronto'},
+    {r:3,date:'Jun 27',home:'Panama',away:'England',venue:'New York/NJ'},
+    {r:3,date:'Jun 27',home:'Croatia',away:'Ghana',venue:'Boston'},
+  ]},
+];
+
+const AVATAR_COLORS = [
+  {bg:'#EEEDFE',text:'#3C3489'},{bg:'#E1F5EE',text:'#085041'},
+  {bg:'#FAECE7',text:'#712B13'},{bg:'#FBEAF0',text:'#72243E'},
+  {bg:'#E6F1FB',text:'#0C447C'},{bg:'#EAF3DE',text:'#27500A'},
+  {bg:'#FAEEDA',text:'#633806'},{bg:'#F0EEFF',text:'#4A2AAA'},
+  {bg:'#FFF0E0',text:'#8B4513'},{bg:'#E0F4FF',text:'#00527A'},
+  {bg:'#F0FFF0',text:'#1B5E20'},{bg:'#FFF8E1',text:'#7B5800'},
+  {bg:'#FFE8E8',text:'#8B0000'},{bg:'#E8F5E9',text:'#1B5E20'},
+  {bg:'#F3E5F5',text:'#4A148C'},
+];
+
+const ROUND_LABELS = {1:'Matchday 1',2:'Matchday 2',3:'Matchday 3'};
+const ROUND_CLS = {1:'round-1',2:'round-2',3:'round-3'};
+
+// ═══════════════════════ STATE ═══════════════════════
+
+let BIN_ID = null;
+let API_KEY = null;
+let scores = {};  // { "A_0": {home:"2",away:"1"}, ... }
+let saveTimer = null;
+let pollTimer = null;
+
+// ═══════════════════════ SETUP ═══════════════════════
+
+async function initBin() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) return showSetupError('setup-error', 'Please paste your Master Key.');
+
+  setLoadingBar(30);
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': key,
+        'X-Bin-Name': 'YardiWC26Scores',
+        'X-Bin-Private': 'false',
+      },
+      body: JSON.stringify({scores: {}})
+    });
+    const data = await res.json();
+    if (!data.metadata || !data.metadata.id) {
+      showSetupError('setup-error', 'Could not create bin. Check your API key and try again.');
+      setLoadingBar(0);
+      return;
+    }
+    BIN_ID = data.metadata.id;
+    API_KEY = key;
+    scores = {};
+    setLoadingBar(100);
+    activateApp();
+  } catch(e) {
+    showSetupError('setup-error', 'Network error. Please try again.');
+    setLoadingBar(0);
+  }
+}
+
+function loadFromUrl() {
+  const val = document.getElementById('existing-url-input').value.trim();
+  const match = val.match(/[?&]bin=([a-f0-9]+)/i) || val.match(/^([a-f0-9]{24})$/i);
+  if (!match) {
+    showSetupError('url-error', 'Could not find a bin ID in that link. Make sure you pasted the full share URL.');
+    return;
+  }
+  BIN_ID = match[1];
+  API_KEY = null; // read-only mode — no key needed for public bin
+  fetchScores(true);
+}
+
+function showSetupError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function activateApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  updateShareUrl();
+  setSyncStatus('ok', 'Connected');
+  startPolling();
+  renderGroups();
+}
+
+// ═══════════════════════ SHARE URL ═══════════════════════
+
+function getShareUrl() {
+  const base = window.location.href.split('?')[0];
+  return base + '?bin=' + BIN_ID;
+}
+
+function updateShareUrl() {
+  window.history.replaceState({}, '', '?bin=' + BIN_ID);
+}
+
+function copyShareUrl() {
+  navigator.clipboard.writeText(getShareUrl()).then(() => {
+    const btn = event.currentTarget;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent=orig, 1800);
+  }).catch(()=>{
+    prompt('Copy this link:', getShareUrl());
+  });
+}
+
+// ═══════════════════════ SYNC ═══════════════════════
+
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-msg');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = msg;
+}
+
+async function fetchScores(andActivate) {
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
+      headers: API_KEY ? {'X-Master-Key': API_KEY} : {}
+    });
+    const data = await res.json();
+    if (data.record && data.record.scores !== undefined) {
+      scores = data.record.scores || {};
+      if (andActivate) {
+        activateApp();
+      } else {
+        refreshScoreDisplay();
+      }
+      setSyncStatus('ok', API_KEY ? 'Synced — you can edit scores' : 'Live (read-only — ask the score-keeper for the key to edit)');
+    } else {
+      showSetupError('url-error', 'Could not load data from that bin. Check the link is correct.');
+    }
+  } catch(e) {
+    setSyncStatus('err', 'Connection error');
+  }
+}
+
+async function pushScores() {
+  if (!API_KEY) return; // read-only mode
+  setSyncStatus('saving', 'Saving…');
+  try {
+    await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY,
+      },
+      body: JSON.stringify({scores})
+    });
+    const now = new Date();
+    document.getElementById('last-saved').textContent =
+      'Saved ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    setSyncStatus('ok', 'Synced — you can edit scores');
+  } catch(e) {
+    setSyncStatus('err', 'Save failed — check connection');
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(pushScores, 1200);
+}
+
+function startPolling() {
+  // Poll every 20 seconds for updates (for viewers without the API key)
+  pollTimer = setInterval(()=>{
+    if (!document.hidden) fetchScores(false);
+  }, 20000);
+}
+
+// ═══════════════════════ AUTO-LOAD FROM URL ═══════════════════════
+
+(function checkUrlOnLoad() {
+  const params = new URLSearchParams(window.location.search);
+  const binId = params.get('bin');
+  if (binId) {
+    document.getElementById('existing-url-input').value = window.location.href;
+    loadFromUrl();
+  }
+})();
+
+// ═══════════════════════ SCORE LOGIC ═══════════════════════
+
+function scoreKey(groupId, fixtureIdx) {
+  return groupId + '_' + fixtureIdx;
+}
+
+function getScore(groupId, fixtureIdx) {
+  return scores[scoreKey(groupId, fixtureIdx)] || {home:'', away:''};
+}
+
+function setScore(groupId, fixtureIdx, side, val) {
+  const k = scoreKey(groupId, fixtureIdx);
+  if (!scores[k]) scores[k] = {home:'', away:''};
+  scores[k][side] = val;
+  scheduleSave();
+}
+
+function refreshScoreDisplay() {
+  GROUPS.forEach(g => {
+    g.fixtures.forEach((f, fi) => {
+      const k = scoreKey(g.id, fi);
+      const s = scores[k] || {home:'', away:''};
+      const homeEl = document.getElementById('score-h-' + k);
+      const awayEl = document.getElementById('score-a-' + k);
+      if (homeEl && awayEl) {
+        if (homeEl.innerText.trim() !== s.home) homeEl.innerText = s.home;
+        if (awayEl.innerText.trim() !== s.away) awayEl.innerText = s.away;
+        homeEl.classList.toggle('filled', s.home !== '');
+        awayEl.classList.toggle('filled', s.away !== '');
+      }
+    });
+  });
+}
+
+// ═══════════════════════ RENDER ═══════════════════════
+
+function renderPicks() {
+  document.getElementById('picks-grid').innerHTML = PARTICIPANTS.map((p,i) => {
+    const c = AVATAR_COLORS[i];
+    return `<div class="person-card">
+      <div class="person-header">
+        <div class="avatar" style="background:${c.bg};color:${c.text}">${p.name.slice(0,2).toUpperCase()}</div>
+        <span class="person-name">${p.name}</span>
+      </div>
+      <div class="person-teams">
+        <div class="team-row">
+          <span class="team-name">${FLAGS[p.pot1]||'🏳'} ${p.pot1}</span>
+          <span class="pot-badge pot-1">Top seed</span>
+        </div>
+        <div class="team-row">
+          <span class="team-name">${FLAGS[p.pot2]||'🏳'} ${p.pot2}</span>
+          <span class="pot-badge pot-2">Pot 2</span>
+        </div>
+        <div class="team-row">
+          <span class="team-name">${FLAGS[p.pot3]||'🏳'} ${p.pot3}</span>
+          <span class="pot-badge pot-3">Pot 3</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ownerChips(t1, t2) {
+  return [...new Set([t1,t2].map(t=>TEAM_OWNER[t]).filter(Boolean))].map(name => {
+    const i = PARTICIPANTS.findIndex(p=>p.name===name);
+    const c = AVATAR_COLORS[i];
+    return `<span class="owner-chip" style="background:${c.bg};color:${c.text};border-color:${c.text}50">${name}</span>`;
+  }).join('');
+}
+
+function renderGroups() {
+  document.getElementById('groups-grid').innerHTML = GROUPS.map(g => {
+    const rows = g.fixtures.map((f, fi) => {
+      const k = scoreKey(g.id, fi);
+      const s = scores[k] || {home:'', away:''};
+      const canEdit = !!API_KEY;
+      const editAttr = canEdit ? 'contenteditable="true"' : '';
+
+      return `<div class="fixture-row">
+        <div class="fixture-matchup">
+          <div class="fixture-team">${FLAGS[f.home]||'🏳'} ${f.home}</div>
+          <div class="score-boxes">
+            <div id="score-h-${k}" class="score-box ${s.home!==''?'filled':''}" ${editAttr}
+              inputmode="numeric"
+              oninput="setScore('${g.id}',${fi},'home',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('score-a-${k}').focus()}"
+              >${s.home}</div>
+            <span class="score-divider">:</span>
+            <div id="score-a-${k}" class="score-box ${s.away!==''?'filled':''}" ${editAttr}
+              inputmode="numeric"
+              oninput="setScore('${g.id}',${fi},'away',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){this.blur()}"
+              >${s.away}</div>
+          </div>
+          <div class="fixture-team right">${f.away} ${FLAGS[f.away]||'🏳'}</div>
+        </div>
+        <div class="fixture-meta">
+          <div style="display:flex;gap:5px;align-items:center">
+            <span class="round-label ${ROUND_CLS[f.r]}">${ROUND_LABELS[f.r]}</span>
+            <span>${f.date}</span>
+            <span style="color:#ccc">·</span>
+            <span>${f.venue}</span>
+          </div>
+          <div class="fixture-owners">${ownerChips(f.home,f.away)}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const teamsSummary = g.teams.map(t=>`${FLAGS[t]||''}${t}`).join(' · ');
+    return `<div class="group-card">
+      <div class="group-header" style="background:${g.color}">
+        <span class="group-label">Group ${g.id}</span>
+        <span class="group-teams-mini">${teamsSummary}</span>
+      </div>
+      <div class="group-fixtures">${rows}</div>
+    </div>`;
+  }).join('');
+}
+
+function setLoadingBar(pct) {
+  document.getElementById('loading-bar').style.width = pct + '%';
+  if (pct >= 100) setTimeout(()=>document.getElementById('loading-bar').style.width='0',600);
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// Init
+renderPicks();
+</script>
+</body>
+</html>
